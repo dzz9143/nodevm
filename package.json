@@ -1,0 +1,19 @@
+{
+  "name": "nodevm",
+  "version": "1.0.0",
+  "description": "Research on vm module in nodejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dzz9143/nodevm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dzz9143/nodevm/issues"
+  },
+  "homepage": "https://github.com/dzz9143/nodevm#readme"
+}
