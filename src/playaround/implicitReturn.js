@@ -99,7 +99,7 @@ console.log(result11(1, 3));    // 14
 
 const code12 = `
 ((fs) => {
-    return fs.readFileSync('src/testData', 'utf-8');
+    return fs.readFileSync('src/playaround/testData', 'utf-8');
 })
 `
 const result12 = vm.runInNewContext(code12);
@@ -109,7 +109,7 @@ console.log(result12(fs));  //hello world
 const code13 = `
 ((require) => {
     var fs = require('fs');
-    return fs.readFileSync('src/testData', 'utf-8');
+    return fs.readFileSync('src/playaround/testData', 'utf-8');
 })
 `
 const result13 = vm.runInNewContext(code13);
