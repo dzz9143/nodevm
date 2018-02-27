@@ -12,6 +12,11 @@
   },
   "author": "",
   "license": "ISC",
+  "proxy": {
+    "*": {
+      "target": "http://127.0.0.1:3000"
+    }
+  },
   "bugs": {
     "url": "https://github.com/dzz9143/nodevm/issues"
   },
