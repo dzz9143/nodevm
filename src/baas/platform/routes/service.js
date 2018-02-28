@@ -28,11 +28,19 @@ router.get('/:name', function (req, res, next) {
 // create a new service and kick off a new process
 router.post('/', function (req, res) {
     const { name } = req.body;
+    if (!name) {
+        res.status(500).json({
+            ok: 0,
+            error: `serviceName should not be empty`,
+        });
+        return;
+    }
     if (serviceModel.isExist(name)) {
         res.status(500).json({
             ok: 0,
             error: `service [${name}] already exist`,
         });
+        return;
     }
     const createTime = Date.now();
     serviceModel.create({
