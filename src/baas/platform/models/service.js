@@ -20,10 +20,26 @@ function find(name) {
     return services[name];
 }
 
+function updateFunction(serviceName, funcName, funcBody) {
+    if (services[serviceName]) {
+        const functions = services[serviceName].functions || {};
+        functions[funcName] = funcBody;
+        services[serviceName] = Object.assign({}, services[serviceName], {
+            functions,
+        });
+    }
+}
+
+function getFunctions(name) {
+    return services[name] ? services[name].functions : {};
+}
+
 module.exports = {
     getAll,
     create,
     isExist,
     update,
     find,
+    updateFunction,
+    getFunctions,
 }

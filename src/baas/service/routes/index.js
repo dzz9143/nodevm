@@ -1,9 +1,18 @@
 var express = require('express');
-var router = express.Router();
+var fetch = require('isomorphic-fetch');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.end('hello world!');
-});
+module.exports = function (funcMap) {
+  var router = express.Router();
+  router.get('/*', function (req, res, next) {
+    // console.log('req.url:', req.url);
+    var funcName = req.url.substr(1);
+    if (funcMap[funcName]) {
+      funcMap[funcName](req, res);
+      return;
+    }
+    res.end(`hello world! ${process.env.serviceName}`);
+  });
 
-module.exports = router;
+  return router;
+};

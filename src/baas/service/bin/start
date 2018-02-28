@@ -1,75 +1,101 @@
 #!/usr/bin/env node
 
-var app = require('../app');
+var createApp = require('../app');
 var debug = require('debug')('service:server');
 var http = require('http');
 var findFreePort = require('find-free-port');
 var hostname = '127.0.0.1';
+var fetch = require('isomorphic-fetch');
+var vm = require('vm');
 
-var server = http.createServer(app);
+function createCode(body) {
+  return `
+    (function(req, res){
+      ${body}
+    })
+  `
+}
 
-findFreePort(10000, hostname, (err, freePort) => {
-  if (err) {
-    process.exit(1);
-  }
+(async () => {
+  const { serviceName } = process.env;
 
-  var port = normalizePort(freePort);
-  server.listen(port, hostname, () => {
-    console.log(`serivce on http://${hostname}:${port}`);
-    process.send({
-      type: 'SUCCESS',
-      address: `${hostname}:${port}`,
+  var resp = await fetch(`http://127.0.0.1:3000/services/${serviceName}/functions`).then(res => res.json());
+  console.log('functions:', resp.functions);
+  let funcMap = {};
+  Object.keys(resp.functions).map(name => {
+    const body = resp.functions[name];
+    funcMap[name] = vm.runInNewContext(createCode(body), Object.create(null))
+  })
+  console.log('funcMap:', funcMap);
+
+  var app = createApp(funcMap);
+  var server = http.createServer(app);
+
+  findFreePort(10000, hostname, (err, freePort) => {
+    if (err) {
+      process.exit(1);
+    }
+
+    var port = normalizePort(freePort);
+    server.listen(port, hostname, () => {
+      console.log(`serivce on http://${hostname}:${port}`);
+      process.send({
+        type: 'SUCCESS',
+        address: `${hostname}:${port}`,
+      });
     });
-  });
-  server.on('error', onError);
-  server.on('listening', onListening);
+    server.on('error', onError);
+    server.on('listening', onListening);
 
-  function normalizePort(val) {
-    var port = parseInt(val, 10);
+    function normalizePort(val) {
+      var port = parseInt(val, 10);
 
-    if (isNaN(port)) {
-      // named pipe
-      return val;
+      if (isNaN(port)) {
+        // named pipe
+        return val;
+      }
+
+      if (port >= 0) {
+        // port number
+        return port;
+      }
+
+      return false;
     }
 
-    if (port >= 0) {
-      // port number
-      return port;
-    }
-
-    return false;
-  }
-
-  function onError(error) {
-    if (error.syscall !== 'listen') {
-      throw error;
-    }
-
-    var bind = typeof port === 'string'
-      ? 'Pipe ' + port
-      : 'Port ' + port;
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-      case 'EACCES':
-        console.error(bind + ' requires elevated privileges');
-        process.exit(1);
-        break;
-      case 'EADDRINUSE':
-        console.error(bind + ' is already in use');
-        process.exit(1);
-        break;
-      default:
+    function onError(error) {
+      if (error.syscall !== 'listen') {
         throw error;
-    }
-  }
+      }
 
-  function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === 'string'
-      ? 'pipe ' + addr
-      : 'port ' + addr.port;
-    debug('Listening on ' + bind);
-  }
-});
+      var bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : 'Port ' + port;
+
+      // handle specific listen errors with friendly messages
+      switch (error.code) {
+        case 'EACCES':
+          console.error(bind + ' requires elevated privileges');
+          process.exit(1);
+          break;
+        case 'EADDRINUSE':
+          console.error(bind + ' is already in use');
+          process.exit(1);
+          break;
+        default:
+          throw error;
+      }
+    }
+
+    function onListening() {
+      var addr = server.address();
+      var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+      debug('Listening on ' + bind);
+    }
+  });
+
+
+})();
 

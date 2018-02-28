@@ -25,6 +25,27 @@ router.get('/:name', function (req, res, next) {
     }
 });
 
+router.get('/:name/functions', function (req, res) {
+    const functions = serviceModel.getFunctions(req.params.name) || {};
+    console.log('functions', functions);
+    res.json({
+        functions,
+    });
+});
+
+// update a function 
+router.post('/:name/function', function (req, res) {
+    const funcName = req.body.name;
+    const funcBody = req.body.body;
+    const serviceName = req.params.name;
+
+    serviceModel.updateFunction(serviceName, funcName, funcBody);
+    processManager.reload(serviceName);
+    res.json({
+        ok: 1,
+    });
+});
+
 // create a new service and kick off a new process
 router.post('/', function (req, res) {
     const { name } = req.body;

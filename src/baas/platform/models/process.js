@@ -12,9 +12,24 @@ function getProcess(name) {
     return processManager[name] || {};
 }
 
+function reload(serviceName) {
+    if (!processManager[serviceName]) {
+        return start(serviceName);
+    }
+
+    const childProcess = processManager[serviceName];
+    childProcess.kill();
+    delete processManager[serviceName];
+    start(serviceName);
+}
+
 function start(serviceName) {
     if (!processManager[serviceName] && serviceModel.isExist(serviceName)) {
-        const childProcess = cp.fork('start', defaultOptions);
+        const childProcess = cp.fork('start', Object.assign({}, defaultOptions, {
+            env: {
+                serviceName,
+            }
+        }));
         processManager[serviceName] = childProcess;
         serviceModel.update(serviceName, {
             status: 'pending',
@@ -51,5 +66,6 @@ function start(serviceName) {
 
 module.exports = {
     start,
+    reload,
     getProcess,
 };
